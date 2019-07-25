@@ -1,8 +1,20 @@
 version: "3.7"
+x-db: &db
+  DB_NAME: "boss_dev"
+  DB_USER: "postgres"
+  DB_PASSWORD: "postgres"
+  DB_HOST: "postgres"
+  DB_PORT: "5432"
+
 services:
   boss:
     build: .
     image: "boss:dev"
+    environment:
+      <<: *db
+      PORT: "8000"
+    links:
+      - postgres
     volumes:
       - type: bind
         source: ./boss
@@ -10,26 +22,25 @@ services:
       - type: bind
         source: ./behind
         target: /usr/src/app/behind
-    environment:
-      - PORT=8000
     ports:
       - "8080:8000"
-    links:
-      - postgres
     restart: "always"
 
   boss-migration:
     build: .
     image: "boss:dev-migrate"
+    environment:
+      <<: *db
+    links:
+      - postgres
     command:
       - "python"
       - "manage.py"
       - "migrate"
-    links:
-      - postgres
 
   postgres:
     image: postgres
     environment:
+      - POSTGRES_DB=boss_dev
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
