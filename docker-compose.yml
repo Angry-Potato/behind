@@ -1,0 +1,35 @@
+version: "3.7"
+services:
+  boss:
+    build: .
+    image: "boss:dev"
+    volumes:
+      - type: bind
+        source: ./boss
+        target: /usr/src/app/boss
+      - type: bind
+        source: ./behind
+        target: /usr/src/app/behind
+    environment:
+      - PORT=8000
+    ports:
+      - "8080:8000"
+    links:
+      - postgres
+    restart: "always"
+
+  boss-migration:
+    build: .
+    image: "boss:dev-migrate"
+    command:
+      - "python"
+      - "manage.py"
+      - "migrate"
+    links:
+      - postgres
+
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
